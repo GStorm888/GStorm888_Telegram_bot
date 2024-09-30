@@ -97,7 +97,6 @@ def process_search_step(user_message):
 :№3
 """
 
-
 @bot.message_handler(commands=["contacts"])
 def list_contacts(message):
     if len(contacts) == 0:
@@ -107,18 +106,12 @@ def list_contacts(message):
         for contact in contacts:
             bot.send_message(message.chat.id, str(contact))
 
-
 """"""""""""""""""""""""""""""""""""""""""""""""""""""
-
 
 @bot.message_handler(commands=["current_time", "time", "now"])
 def current_time(message):
     now = datetime.datetime.now()
     output_message = f"{now.year} год, {now.month} месяц, {now.day} число"
     bot.send_message(message.chat.id, output_message)
-
-
-
-
 
 bot.infinity_polling()
