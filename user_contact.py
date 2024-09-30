@@ -9,5 +9,5 @@ class UserContact:
         self.description = description
 
     def __str__(self):
-        return f"Имя: {self.name}, номер телефона: {self.phone_numder}"
+        return f"Имя: {self.name}, номер телефона: {self.phone_numder}, описание: {self.description}"
     
