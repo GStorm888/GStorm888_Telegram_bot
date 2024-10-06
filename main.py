@@ -65,7 +65,6 @@ def process_del_name_step(user_message):
     name = user_message.text
     for contact in contacts:
         if contact.name == name:
-            contact = contact
             contacts.remove(contact)
             bot.send_message(user_message.chat.id, f"Вы удалил контакт: {contact}")
             return
@@ -85,8 +84,9 @@ def process_search_step(user_message):
     name = user_message.text
     for contact in contacts:
         if contact == name:
-            contact = contact
-    bot.send_message(user_message.chat.id, str(contact))
+            bot.send_message(user_message.chat.id, str(contact))
+            return
+    bot.send_message(user_message.chat.id, f"Я не нашел контакта с именем: {contact}")
 
 """
 вывод всех контактов:
