@@ -1,14 +1,15 @@
 import datetime
 import config
+import contact_boook
+
 import telebot
 from telebot import types
 
 import user_contact
-bot = telebot.TeleBot(config.token)
 
-contacts = []
-phone_number = None
-name = None
+bot = telebot.TeleBot(config.token)
+contact_builder = contact_boook.ContactBuilder()
+
 
 def create_main_keyboard():
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -28,23 +29,27 @@ def start(message):
 
 def handler_main_commands(message):
     if message.text == "Добавить контакт":
-        print("add contact>>>")
         delete_keyboard = types.ReplyKeyboardRemove()
         bot.send_message(message.chat.id, "Имя контакта>>>", reply_markup=delete_keyboard)
         # обработка сообщения
         bot.register_next_step_handler(message, process_name_step)
 
     elif message.text == "Показать все контакты":
-        print("chek contacts>>>") 
-        bot.send_message(message.chat.id, "Все контакты")
-        # вывод контактов
-        bot.register_next_step_handler(message)
+        
+        contacts = contact_builder.get_contacts(message.chat.id)
+        if len(contacts) > 0:
+            bot.send_message(message.chat.id, "Все контакты:")
+            for contact in contacts:
+                bot.send_message(message.chat.id, str(contact))
+        else:
+            bot.send_message(message.chat.id, "Список пуст<<<")
+            # вывод контактов
+        bot.register_next_step_handler(message, handler_main_commands)
 
     else:
-        print("i don`t know>>>")
         bot.send_message(message.chat.id, "Не понял")
         # рекурсия
-        bot.register_next_step_handler(message, process_name_step)
+        bot.register_next_step_handler(message, handler_main_commands)
 
 
 
@@ -58,7 +63,7 @@ def process_name_step(message):
         bot.register_next_step_handler(message, process_name_step)
         return
     
-    # contact_builder.add_name(name)
+    contact_builder.add_name(message.chat.id, name)
 
     bot.send_message(message.chat.id, "Номер телефона>>>")
     bot.register_next_step_handler(message, process_phone_number_step)
@@ -73,23 +78,20 @@ def process_phone_number_step(message):
         bot.register_next_step_handler(message, process_phone_number_step)
         return
     
-    # contact_builder.add_name(name)
+    contact_builder.add_phone_number(message.chat.id, phone_number)
 
-    keyboard = types.InlineKeyboardMarkup()
 
-    skip_btn = types.InlineKeyboardButton(text="Пропустить", callback_data="skip_description")
-    keyboard.add(skip_btn)
-
-    bot.send_message(message.chat.id, "Описание>>>", reply_markup=keyboard)
+    bot.send_message(message.chat.id, "Описание>>>")
     bot.register_next_step_handler(message, process_description_step)
 
 # начало обработка описания
 def process_description_step(message):
     description = message.text
     
-    # contact_builder.add_name(name)
+    contact_builder.add_description(message.chat.id, description)
+    contact_builder.build(message.chat.id)
 
     bot.send_message(message.chat.id, "Контакт создан!", reply_markup=create_main_keyboard())
-    bot.register_next_step_handler(message, process_phone_number_step)
+    bot.register_next_step_handler(message, handler_main_commands)
 
 bot.infinity_polling()
